@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Cargar d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Añadir botones Hombre - Mujer-->
+<button onclick="update('Hombre')">Hombre</button>
+<button onclick="update('Mujer')">Mujer</button>
+
+<!-- Crear identificador para el gràfico -->
+<div id="my_dataviz"></div>
+
+<script>
+
+// Dimensiones del gráfico
+var margin = {top: 30, right: 30, bottom: 70, left: 60},
+    width =2100 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+  
+// Añadir un SVG al cuerpo del deocumento
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Inicializar eje X
+var x = d3.scaleBand()
+  .range([ 1, width ])
+   .padding(1);
+var xAxis = svg.append("g")
+  .attr("transform",  "translate(0," + height + ")")
+
+   
+// Inicializar eje Y
+var y = d3.scaleLinear()
+  .range([ height, 0]);
+var yAxis = svg.append("g")
+  .attr("class", "myYaxis")
+
+
+// Función para actualizar el gráfcio:
+function update(selectedVar) {
+
+  // Consulta de los datos
+  d3.csv("https://raw.githubusercontent.com/vanpato1/Ivan_d3/main/SubempleoHM.csv", function(data) {
+
+    // Eje X
+    x.domain(data.map(function(d) { return d.Periodo; }))
+    xAxis.transition().duration(1000).call(d3.axisBottom(x))
+
+    // Eje Y
+    y.domain([0, d3.max(data, function(d) { return +d[selectedVar] }) ]);
+    yAxis.transition().duration(1000).call(d3.axisLeft(y));
+
+    // Variable u: Mapea los datos a un círculo existente
+    var j = svg.selectAll(".myLine")
+      .data(data)
+    // update lines
+    j
+      .enter()
+      .append("line")
+      .attr("class", "myLine")
+      .merge(j)
+      .transition()
+      .duration(1000)
+        .attr("x1", function(d) { console.log(x(d.Periodo)) ; return x(d.Periodo); })
+        .attr("x2", function(d) { return x(d.Periodo); })
+        .attr("y1", y(0))
+        .attr("y2", function(d) { return y(d[selectedVar]); })
+        .attr("stroke", "grey")
+
+
+    // variable u: Mapea los datos a un círculo existente
+    var u = svg.selectAll("circle")
+      .data(data)
+
+    // Actualizaciòn de barras
+    u
+      .enter()
+      .append("circle")
+      .merge(u)
+      .transition()
+      .duration(1000)
+        .attr("cx", function(d) { return x(d.Periodo); })
+        .attr("cy", function(d) { return y(d[selectedVar]); })
+        .attr("r", 8)
+        .attr("fill", "#5457de");
+
+// Tìtúlo del gràfico
+
+svg.append("text")
+        .attr("x",310)
+        .attr("y", 5)
+        .attr("text-anchor", "left")
+        .style("font-size", "18px")
+        .text("SUB-EMPLEO EN ECUADOR  POR GENERO");
+    
+  })
+
+}
+
+// Inicializar Plot
+update('Hombre')
+
+</script>
